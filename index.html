@@ -12,18 +12,23 @@
 </head>
 <body>
     <div class="container">
-        <h1>GPT Chat Room</h1>
         <div class="config">
-            <input type="text" id="apiUrl" placeholder="OpenAI API URL">
-            <input type="password" id="apiToken" placeholder="OpenAI API Token">
-            <input type="text" id="model" placeholder="Model (e.g., gpt-3.5-turbo)">
-            <button id="saveConfig">Save Configuration</button>
+            <div class="config-row">
+                <input type="text" id="apiUrl" placeholder="OpenAI API URL">
+                <input type="password" id="apiToken" placeholder="OpenAI API Token">
+                <input type="text" id="model" placeholder="Model (e.g., gpt-3.5-turbo)">
+            </div>
+            <div class="config-row">
+                <input type="text" id="systemPrompt" placeholder="System Prompt">
+                <button id="saveConfig">Save Configuration</button>
+            </div>
         </div>
         <div class="chat-container">
             <div id="chatMessages"></div>
             <div class="input-container">
                 <input type="text" id="userInput" placeholder="Type your message...">
                 <button id="sendMessage">Send</button>
+                <button id="clearChat">Clear</button>
             </div>
         </div>
     </div>

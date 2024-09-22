@@ -1,16 +1,19 @@
 let apiUrl = '';
 let apiToken = '';
 let model = '';
+let systemPrompt = '';
 let conversationHistory = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     const saveConfigBtn = document.getElementById('saveConfig');
     const sendMessageBtn = document.getElementById('sendMessage');
+    const clearChatBtn = document.getElementById('clearChat');
     const userInput = document.getElementById('userInput');
     const chatMessages = document.getElementById('chatMessages');
 
     saveConfigBtn.addEventListener('click', saveConfiguration);
     sendMessageBtn.addEventListener('click', sendMessage);
+    clearChatBtn.addEventListener('click', clearChat);
     userInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendMessage();
     });
@@ -19,9 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
     apiUrl = localStorage.getItem('apiUrl') || '';
     apiToken = localStorage.getItem('apiToken') || '';
     model = localStorage.getItem('model') || 'gpt-3.5-turbo';
+    systemPrompt = localStorage.getItem('systemPrompt') || '';
     document.getElementById('apiUrl').value = apiUrl;
     document.getElementById('apiToken').value = apiToken;
     document.getElementById('model').value = model;
+    document.getElementById('systemPrompt').value = systemPrompt;
 
     // Configure marked to use Prism for syntax highlighting
     marked.setOptions({
@@ -39,11 +44,13 @@ function saveConfiguration() {
     apiUrl = document.getElementById('apiUrl').value.trim();
     apiToken = document.getElementById('apiToken').value.trim();
     model = document.getElementById('model').value.trim();
+    systemPrompt = document.getElementById('systemPrompt').value.trim();
     
     if (apiUrl && apiToken && model) {
         localStorage.setItem('apiUrl', apiUrl);
         localStorage.setItem('apiToken', apiToken);
         localStorage.setItem('model', model);
+        localStorage.setItem('systemPrompt', systemPrompt);
         alert('Configuration saved successfully!');
     } else {
         alert('Please enter API URL, API Token, and Model.');
@@ -69,6 +76,11 @@ async function sendMessage() {
             role: msg.sender === 'user' ? 'user' : 'assistant',
             content: msg.content
         }));
+
+        // Add system prompt as the first message if it exists
+        if (systemPrompt) {
+            contextMessages.unshift({ role: "system", content: systemPrompt });
+        }
 
         const response = await fetch(apiUrl, {
             method: 'POST',
@@ -167,4 +179,10 @@ function updateMessageContent(messageElement, newContent) {
 
     const chatMessages = document.getElementById('chatMessages');
     chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function clearChat() {
+    const chatMessages = document.getElementById('chatMessages');
+    chatMessages.innerHTML = '';
+    conversationHistory = [];
 }
