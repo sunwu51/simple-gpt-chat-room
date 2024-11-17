@@ -63,11 +63,12 @@ async function sendMessage() {
 
     if (!message) return;
 
-    addMessageToChat('user', message);
+    // 添加用户消息到历史记录
+    addMessageToChat('user', message, true);
     userInput.value = '';
 
     if (!apiUrl || !apiToken || !model) {
-        addMessageToChat('gpt', 'Please configure the API URL, API Token, and Model first.');
+        addMessageToChat('gpt', 'Please configure the API URL, API Token, and Model first.', true);
         return;
     }
 
@@ -102,7 +103,7 @@ async function sendMessage() {
         await handleStreamingResponse(response);
     } catch (error) {
         console.error('Error:', error);
-        addMessageToChat('gpt', 'Sorry, there was an error processing your request.');
+        addMessageToChat('gpt', 'Sorry, there was an error processing your request.', true);
     }
 }
 
@@ -125,6 +126,10 @@ async function handleStreamingResponse(response) {
             if (line.startsWith('data: ')) {
                 const data = line.slice(6);
                 if (data === '[DONE]') {
+                    // 在流式响应完成后，将完整的消息添加到历史记录
+                    if (fullMessage) {
+                        addMessageToHistory('gpt', fullMessage);
+                    }
                     return;
                 }
                 try {
@@ -132,7 +137,7 @@ async function handleStreamingResponse(response) {
                     const content = parsed.choices[0].delta.content;
                     if (content) {
                         if (!messageElement) {
-                            messageElement = addMessageToChat('gpt', '');
+                            messageElement = addMessageToChat('gpt', '', false);
                         }
                         fullMessage += content;
                         updateMessageContent(messageElement, fullMessage);
@@ -145,7 +150,7 @@ async function handleStreamingResponse(response) {
     }
 }
 
-function addMessageToChat(sender, message) {
+function addMessageToChat(sender, message, addToHistory = false) {
     const chatMessages = document.getElementById('chatMessages');
     const messageElement = document.createElement('div');
     messageElement.classList.add('message', `${sender}-message`);
@@ -159,14 +164,20 @@ function addMessageToChat(sender, message) {
     chatMessages.appendChild(messageElement);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
-    // Add message to conversation history
+    // 只有在指定时才添加到历史记录
+    if (addToHistory) {
+        addMessageToHistory(sender, message);
+    }
+
+    return messageElement;
+}
+
+function addMessageToHistory(sender, message) {
     conversationHistory.push({ sender, content: message });
     // Keep only the last 13 messages (6 pairs plus the current message)
     if (conversationHistory.length > 13) {
         conversationHistory = conversationHistory.slice(-13);
     }
-
-    return messageElement;
 }
 
 function updateMessageContent(messageElement, newContent) {
